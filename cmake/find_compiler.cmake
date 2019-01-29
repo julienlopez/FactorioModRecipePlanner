@@ -1,0 +1,11 @@
+
+function(find_compiler)
+	string(FIND "${CMAKE_GENERATOR}" "MSYS" RESULT)
+	if(${RESULT} LESS 0)
+		string(FIND "${CMAKE_GENERATOR}" "MinGW" RESULT)
+		if(${RESULT} LESS 0)
+			string(FIND "${CMAKE_GENERATOR}" "Visual Studio" RESULT)
+		endif()
+	endif()
+	set(NOT_WINDOWS ${RESULT} PARENT_SCOPE)
+endfunction(find_compiler)
