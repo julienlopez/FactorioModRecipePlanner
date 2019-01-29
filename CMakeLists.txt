@@ -11,10 +11,11 @@ if(ENABLE_COVERAGE STREQUAL "ON")
 endif()
 
 include_directories(.)
-include_directories(3rd_party/range)
+include_directories(3rd_party)
+include_directories(3rd_party)
 
 #include(cmake/boost.cmake)
 #include(cmake/gsl.cmake)
 
 file(GLOB_RECURSE SOURCE_FILES ./*)
-add_executable(FactorioModRecipePlanner ${SOURCE_FILES})
+add_executable(FactorioModRecipePlanner ${SOURCE_FILES} 3rd_party/json/json.cc)

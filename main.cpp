@@ -1,8 +1,7 @@
+#include "analyzer.hpp"
+
 #include <cassert>
 #include <iostream>
-#include <filesystem>
-
-namespace filesystem = std::filesystem;
 
 std::vector<filesystem::path> exploreFiles(const filesystem::path& dir)
 {
@@ -36,9 +35,8 @@ int main(int argc, char* argv[])
     }
 
     const auto files = exploreFiles(analyze_dir);
-    std::cout << files.size() << std::endl;
-	for(const auto& file : files)
-        std::cout << file << std::endl;
+    Analyzer a;
+    a.loadRecipeFiles(files);
 
     return EXIT_SUCCESS;
 }
