@@ -34,9 +34,16 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    const auto files = exploreFiles(analyze_dir);
-    Analyzer a;
-    a.loadRecipeFiles(files);
+	try 
+	{
+		const auto files = exploreFiles(analyze_dir);
+		const Analyzer a(files);
+		a.computeRequirements({"automation-science-pack", 10});
+	}
+	catch(const std::exception& ex)
+	{
+	    std::cerr << "Exception caught :  " << std::endl << ex.what() << std::endl;
+	}
 
     return EXIT_SUCCESS;
 }
