@@ -51,7 +51,10 @@ auto compareIqByItem(const Item& item)
 
 bool isNotCompatibleWithProductivityModules(const Item& item)
 {
-    const std::vector<Item> final_items{"inserter", "transport-belt"};
+    const std::vector<Item> final_items{"inserter", "transport-belt",   "stone-wall",
+                                        "grenade",  "firearm-magazine", "piercing-rounds-magazine",
+                                        "pipe",     "electric-furnace", "productivity-module",
+                                        "rail"};
     return std::find(begin(final_items), end(final_items), item) != end(final_items);
 }
 
@@ -67,7 +70,9 @@ double computeRatio(const std::vector<ItemQuantity>& recipe_outputs, const ItemQ
 
 bool isOnBus(const Item& item)
 {
-    const std::vector<Item> items_on_the_bus{"copper-plate", "iron-plate", "iron-gear-wheel", "electronic-circuit"};
+    const std::vector<Item> items_on_the_bus{"copper-plate", "iron-plate",  "iron-gear-wheel", "electronic-circuit",
+                                             "steel-plate",  "stone-brick", "plastic",         "advanced-circuit",
+                                             "solid-fuel"};
     return std::find(begin(items_on_the_bus), end(items_on_the_bus), item) != end(items_on_the_bus);
 }
 
