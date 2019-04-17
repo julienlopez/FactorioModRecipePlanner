@@ -4,8 +4,7 @@
 #include <optional>
 #include <vector>
 
-    namespace filesystem
-    = std::filesystem;
+namespace filesystem = std::filesystem;
 
 using Item = std::string;
 
@@ -14,6 +13,12 @@ struct ItemQuantity
     Item item;
     double quantity;
 };
+
+std::ostream& operator<<(std::ostream& o, const ItemQuantity& iq);
+
+ItemQuantity operator*(ItemQuantity iq, double ratio);
+
+ItemQuantity operator*(double ratio, ItemQuantity iq);
 
 struct Recipe
 {
@@ -30,7 +35,9 @@ public:
 
     ~Analyzer() = default;
 
-    void computeRequirements(const ItemQuantity& iq) const;
+    std::vector<ItemQuantity> computeRequirements(const ItemQuantity& iq) const;
+
+    static constexpr double c_productivity_bonus = 1.4;
 
 private:
     using RecipeContainer_t = std::vector<Recipe>;

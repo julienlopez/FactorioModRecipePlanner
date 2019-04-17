@@ -22,13 +22,12 @@ auto parseItemQuantities(const nlohmann::json::array_t& json)
     for(const auto& iq : json)
     {
         res.push_back(ItemQuantity{iq["name"], (nlohmann::json::number_float_t)iq["amount"]});
-	}
+    }
     return res;
 }
 
 Recipe parseRecipe(const nlohmann::json& json)
 {
-	// std::cout << json.dump(2) << std::endl;
     const auto& inputs = json["ingredients"];
     const auto& outputs = json["results"];
     return {json["name"], json["energy_required"], parseItemQuantities(inputs), parseItemQuantities(outputs)};
@@ -45,7 +44,40 @@ auto loadRecipes(const nlohmann::json& json)
     return res;
 }
 
+auto compareIqByItem(const Item& item)
+{
+    return [&item](const ItemQuantity& iq) { return iq.item == item; };
+}
+
+double computeRatio(const std::vector<ItemQuantity>& recipe_outputs, const ItemQuantity& production_wanted)
+{
+    const auto it = find_if(begin(recipe_outputs), end(recipe_outputs), compareIqByItem(production_wanted.item));
+    if(it == end(recipe_outputs)) throw std::runtime_error("bad outputs given to computeRatio");
+    return production_wanted.quantity / it->quantity / Analyzer::c_productivity_bonus;
+}
+
+bool isOnBus(const Item& i)
+{
+    const std::vector<Item> items_on_the_bus{"copper-plate", "iron-plate", "iron-gear-wheel"};
+    return std::find(begin(items_on_the_bus), end(items_on_the_bus), i) != end(items_on_the_bus);
+}
+
 } // namespace
+
+std::ostream& operator<<(std::ostream& o, const ItemQuantity& iq)
+{
+    return o << iq.item << " x" << iq.quantity << "/s (" << (iq.quantity / 45) << " bb)";
+}
+
+ItemQuantity operator*(ItemQuantity iq, double ratio)
+{
+    return {std::move(iq.item), ratio * iq.quantity};
+}
+
+ItemQuantity operator*(double ratio, ItemQuantity iq)
+{
+    return std::move(iq) * ratio;
+}
 
 Analyzer::Analyzer(const std::vector<filesystem::path>& files)
     : m_recipes(loadRecipeFiles(files))
@@ -53,21 +85,37 @@ Analyzer::Analyzer(const std::vector<filesystem::path>& files)
     std::cout << m_recipes.size() << " recipes loaded" << std::endl;
 }
 
-void Analyzer::computeRequirements(const ItemQuantity& iq) const
+std::vector<ItemQuantity> Analyzer::computeRequirements(const ItemQuantity& iq) const
 {
-    std::cout << "looking for " << iq.item << " (x" << iq.quantity << ")" << std::endl;
+    std::cout << "looking for " << iq << std::endl;
     const auto& recipe = findRecipeProducing(iq.item);
-    if(!recipe) throw std::runtime_error("Unable to find recipe for " + iq.item);
+    if(!recipe) return {iq};
     std::vector<ItemQuantity> requirements;
-
+    const auto ratio = computeRatio(recipe->outputs, iq);
+    for(const auto& res : recipe->inputs)
+    {
+        const auto requirement = ratio * res;
+        std::cout << requirement << std::endl;
+        if(isOnBus(requirement.item))
+        {
+            requirements.push_back(requirement);
+        }
+        else
+        {
+            auto sub_res = computeRequirements(requirement);
+            requirements.reserve(requirements.size() + sub_res.size());
+            std::copy(std::make_move_iterator(begin(sub_res)), std::make_move_iterator(end(sub_res)),
+                      std::back_inserter(requirements));
+        }
+    }
+    return requirements;
 }
 
 std::optional<const Recipe> Analyzer::findRecipeProducing(const Item& item) const
 {
     for(const auto& recipe : m_recipes)
     {
-        const auto it = std::find_if(begin(recipe.outputs), end(recipe.outputs),
-                                     [&item](const ItemQuantity& iq) { return iq.item == item; });
+        const auto it = std::find_if(begin(recipe.outputs), end(recipe.outputs), compareIqByItem(item));
         if(it != end(recipe.outputs)) return recipe;
     }
     return std::nullopt;
