@@ -12,7 +12,7 @@ using Item = std::string;
 struct ItemQuantity
 {
     Item item;
-    std::size_t quantity;
+    double quantity;
 };
 
 struct Recipe

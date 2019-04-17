@@ -5,7 +5,7 @@
 #include <cassert>
 #include <fstream>
 
-#include <gsl/gsl_utils>
+#include <gsl/gsl_util>
 
 namespace
 {
@@ -21,8 +21,7 @@ auto parseItemQuantities(const nlohmann::json::array_t& json)
     std::vector<ItemQuantity> res;
     for(const auto& iq : json)
     {
-        std::cout << iq.dump(2) << std::endl;
-        res.push_back(ItemQuantity{iq["name"], gsl::narrow<std::size_t>(iq["amount"])});
+        res.push_back(ItemQuantity{iq["name"], (nlohmann::json::number_float_t)iq["amount"]});
 	}
     return res;
 }
@@ -59,6 +58,8 @@ void Analyzer::computeRequirements(const ItemQuantity& iq) const
     std::cout << "looking for " << iq.item << " (x" << iq.quantity << ")" << std::endl;
     const auto& recipe = findRecipeProducing(iq.item);
     if(!recipe) throw std::runtime_error("Unable to find recipe for " + iq.item);
+    std::vector<ItemQuantity> requirements;
+
 }
 
 std::optional<const Recipe> Analyzer::findRecipeProducing(const Item& item) const

@@ -12,10 +12,10 @@ endif()
 
 include_directories(.)
 include_directories(3rd_party)
-include_directories(3rd_party)
+include_directories(3rd_party/GSL/include)
 
 #include(cmake/boost.cmake)
 #include(cmake/gsl.cmake)
 
-file(GLOB_RECURSE SOURCE_FILES ./*)
+file(GLOB_RECURSE SOURCE_FILES ./src/*)
 add_executable(FactorioModRecipePlanner ${SOURCE_FILES} 3rd_party/json/json.cc)
