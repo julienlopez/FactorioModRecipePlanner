@@ -49,17 +49,40 @@ auto compareIqByItem(const Item& item)
     return [&item](const ItemQuantity& iq) { return iq.item == item; };
 }
 
+bool isNotCompatibleWithProductivityModules(const Item& item)
+{
+    const std::vector<Item> final_items{"inserter", "transport-belt"};
+    return std::find(begin(final_items), end(final_items), item) != end(final_items);
+}
+
 double computeRatio(const std::vector<ItemQuantity>& recipe_outputs, const ItemQuantity& production_wanted)
 {
     const auto it = find_if(begin(recipe_outputs), end(recipe_outputs), compareIqByItem(production_wanted.item));
     if(it == end(recipe_outputs)) throw std::runtime_error("bad outputs given to computeRatio");
-    return production_wanted.quantity / it->quantity / Analyzer::c_productivity_bonus;
+    if(isNotCompatibleWithProductivityModules(production_wanted.item))
+        return production_wanted.quantity / it->quantity;
+    else
+        return production_wanted.quantity / it->quantity / Analyzer::c_productivity_bonus;
 }
 
-bool isOnBus(const Item& i)
+bool isOnBus(const Item& item)
 {
-    const std::vector<Item> items_on_the_bus{"copper-plate", "iron-plate", "iron-gear-wheel"};
-    return std::find(begin(items_on_the_bus), end(items_on_the_bus), i) != end(items_on_the_bus);
+    const std::vector<Item> items_on_the_bus{"copper-plate", "iron-plate", "iron-gear-wheel", "electronic-circuit"};
+    return std::find(begin(items_on_the_bus), end(items_on_the_bus), item) != end(items_on_the_bus);
+}
+
+std::vector<ItemQuantity> mergeRequirements(std::vector<ItemQuantity> requirements)
+{
+    std::map<Item, double> map;
+    for(auto& req : requirements)
+    {
+        const auto p = map.insert(std::make_pair(req.item, 0.));
+        p.first->second += req.quantity;
+    }
+    std::vector<ItemQuantity> res;
+    for(auto& p : map)
+        res.push_back({std::move(p.first), p.second});
+    return res;
 }
 
 } // namespace
@@ -108,7 +131,7 @@ std::vector<ItemQuantity> Analyzer::computeRequirements(const ItemQuantity& iq) 
                       std::back_inserter(requirements));
         }
     }
-    return requirements;
+    return mergeRequirements(std::move(requirements));
 }
 
 std::optional<const Recipe> Analyzer::findRecipeProducing(const Item& item) const
