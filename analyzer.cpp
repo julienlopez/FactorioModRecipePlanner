@@ -31,14 +31,12 @@ void Analyzer::loadRecipeFiles(const std::vector<filesystem::path>& files)
 void Analyzer::loadRecipeFile(const filesystem::path& file)
 {
     auto content = readFileAsString(file);
-    assert(startsWith(content, "data:extend({"));
-    content = content.substr(14, content.size() - 16);
     // std::cout << content << std::endl;
 	try
-		{
-    const auto json = nlohmann::json::parse(content);
-    std::cout << file << " : \n";
-    std::cout << json.dump() << std::endl;
+	{
+		const auto json = nlohmann::json::parse(content);
+		std::cout << file << " : \n";
+		std::cout << json.dump() << std::endl;
 	}
 	catch (const std::exception& ex)
 	{
