@@ -71,8 +71,8 @@ double computeRatio(const std::vector<ItemQuantity>& recipe_outputs, const ItemQ
 bool isOnBus(const Item& item)
 {
     const std::vector<Item> items_on_the_bus{"copper-plate", "iron-plate",  "iron-gear-wheel", "electronic-circuit",
-                                             "steel-plate",  "stone-brick", "plastic",         "advanced-circuit",
-                                             "solid-fuel"};
+                                             "steel-plate",  "stone-brick", "plastic-bar",         "advanced-circuit",
+                                             "solid-fuel", "processing-unit", "lubricant", "battery"};
     return std::find(begin(items_on_the_bus), end(items_on_the_bus), item) != end(items_on_the_bus);
 }
 
@@ -123,7 +123,7 @@ std::vector<ItemQuantity> Analyzer::computeRequirements(const ItemQuantity& iq) 
     for(const auto& res : recipe->inputs)
     {
         const auto requirement = ratio * res;
-        std::cout << requirement << std::endl;
+        std::cout << "\t" << requirement << std::endl;
         if(isOnBus(requirement.item))
         {
             requirements.push_back(requirement);

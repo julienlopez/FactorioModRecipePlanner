@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
     {
         const auto files = exploreFiles(analyze_dir);
         const Analyzer a(files);
-        const auto reqs = a.computeRequirements({"utility-science-pack", 10});
+        const auto reqs = a.computeRequirements({"space-science-pack", 10});
         std::cout << "finally : \n";
         for(const auto& r : reqs)
             std::cout << r << std::endl;
