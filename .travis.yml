@@ -1,58 +1,26 @@
 language: cpp
+sudo: required
+dist: trusty
 
-compiler: 
+compiler:
   - gcc
 
-dist: trusty
-sudo: required
-
-matrix:
-  include:
-    # works on Precise and Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - sourceline: 'ppa:mhier/libboost-latest'
-          packages:
-            - g++-7
-            - boost1.68
-            - qt5-default
-            - qttools5-dev
-            - qttools5-dev-tools
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && LD=g++-7"
+os:
+  - linux
 
 before_install:
-  - eval "${MATRIX_EVAL}"
-  - sudo unlink /usr/bin/g++
-  - sudo ln -s /usr/bin/g++-7 /usr/bin/g++
-  - wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.11.orig.tar.gz
-  - tar xf lcov_1.11.orig.tar.gz
-  - sudo make -C lcov-1.11/ install
-  - git clone https://github.com/Microsoft/GSL
-  - sudo ln -s /home/travis/build/julienlopez/AtitdChemistryHelper/GSL/include/gsl /usr/include
+  - sudo chmod 777 ./travis-scripts/*
+  - ./travis-scripts/dependencies.sh
   # Codecov
   - sudo pip install codecov
 
 script:
-  - mkdir build_gcc
-  - cd build_gcc
-  - cmake .. -DENABLE_COVERAGE=ON
-  - make VERBOSE=1 unit_tests
-  - lcov --no-external --capture --initial --directory ../libchemistryhelper --directory ../atitdchemistryhelper --output-file ../coverage_base.info
-  - unit_tests/unit_tests
-  - cd ..
+  - ./travis-scripts/build.sh
 
 after_success:
   # Creating report
   - cd ${TRAVIS_BUILD_DIR}
-  - pwd
-  - find . -name *.gcda
-  - find . -name *.gcno
-  - lcov --directory libchemistryhelper --directory atitdchemistryhelper --directory build_gcc --capture --no-external --output-file coverage_tests.info
-  - lcov --add-tracefile coverage_base.info --add-tracefile coverage_tests.info --output-file coverage.info
+  - lcov --directory src --directory build --capture --no-external --output-file coverage.info # capture coverage info
   - lcov --remove coverage.info '/usr/*' --output-file coverage.info # filter out system
   - lcov --remove coverage.info '3rd_party/*' --output-file coverage.info # filter out system
   - lcov --list coverage.info #debug info
