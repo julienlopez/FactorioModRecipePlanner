@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions("-DNOMINMAX")
 add_definitions("-std=c++17")
 add_definitions("-lstdc++fs")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -std=c++17 -lstdc++fs")
 
 if(ENABLE_COVERAGE STREQUAL "ON")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fprofile-arcs -ftest-coverage -O0")
