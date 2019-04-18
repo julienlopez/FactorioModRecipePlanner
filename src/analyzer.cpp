@@ -71,6 +71,22 @@ std::vector<ItemQuantity> mergeRequirements(std::vector<ItemQuantity> requiremen
     return res;
 }
 
+std::vector<ItemQuantity> mergeRequirements(std::vector<ItemQuantity> reqs1, std::vector<ItemQuantity> reqs2)
+{
+    std::copy(begin(reqs2), end(reqs2), std::back_inserter(reqs1));
+    return mergeRequirements(reqs1);
+}
+
+std::vector<ItemQuantity> mergeAllRequirements(std::vector<std::vector<ItemQuantity>> reqs)
+{
+    if(reqs.empty()) return {};
+    if(reqs.size() == 1) return reqs.front();
+    if(reqs.size() == 2) return mergeRequirements(reqs.front(), reqs.back());
+    return mergeRequirements(
+        std::move(reqs.front()),
+        mergeAllRequirements({std::make_move_iterator(std::next(begin(reqs))), std::make_move_iterator(end(reqs))}));
+}
+
 } // namespace
 
 std::ostream& operator<<(std::ostream& o, const ItemQuantity& iq)
@@ -120,6 +136,16 @@ std::vector<ItemQuantity> Analyzer::computeRequirements(const ItemQuantity& iq) 
         }
     }
     return mergeRequirements(std::move(requirements));
+}
+
+auto Analyzer::computeMultipleRequirements(const std::vector<ItemQuantity>& iqs) const -> MultipleRecipesResults
+{
+    MultipleRecipesResults res;
+    std::transform(begin(iqs), end(iqs), std::back_inserter(res.per_recipe_requirements),
+                   std::bind(&Analyzer::computeRequirements, this, std::placeholders::_1));
+    res.total_requirements = mergeAllRequirements(res.per_recipe_requirements);
+    Ensures(res.per_recipe_requirements.size() == iqs.size());
+    return res;
 }
 
 std::optional<const Recipe> Analyzer::findRecipeProducing(const Item& item) const

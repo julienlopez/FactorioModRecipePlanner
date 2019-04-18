@@ -37,6 +37,17 @@ public:
 
     std::vector<ItemQuantity> computeRequirements(const ItemQuantity& iq) const;
 
+    struct MultipleRecipesResults
+    {
+        std::vector<ItemQuantity> total_requirements;
+        std::vector<std::vector<ItemQuantity>> per_recipe_requirements;
+    };
+
+    /**
+     * @post res.per_recipe_requirements.size() == iqs.size()
+     */
+    MultipleRecipesResults computeMultipleRequirements(const std::vector<ItemQuantity>& iqs) const;
+
     static constexpr double c_productivity_bonus = 1.4;
     static const std::string c_default_productivity_module;
 

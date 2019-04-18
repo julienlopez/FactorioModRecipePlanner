@@ -37,10 +37,27 @@ int main(int argc, char* argv[])
     {
         const auto files = exploreFiles(analyze_dir);
         const Analyzer a(files);
-        const auto reqs = a.computeRequirements({"space-science-pack", 10});
+        const std::size_t target_quantity = 15;
+        const std::vector<ItemQuantity> sciences
+            = {{"automation-science-pack", target_quantity}, {"logistic-science-pack", target_quantity},
+               {"military-science-pack", target_quantity},   {"chemical-science-pack", target_quantity},
+               {"production-science-pack", target_quantity}, {"utility-science-pack", target_quantity},
+               {"space-science-pack", target_quantity}};
+        auto reqs = a.computeMultipleRequirements(sciences);
         std::cout << "finally : \n";
-        for(const auto& r : reqs)
-            std::cout << r << std::endl;
+        std::cout << "per recipe : \n";
+        for(std::size_t i = 0; i < sciences.size(); i++)
+        {
+            std::cout << "\t" << sciences[i].item << " : \n";
+            for(const auto& r : reqs.per_recipe_requirements[i])
+                std::cout << "\t\t" << r << std::endl;
+        }
+        std::cout << "total : \n";
+        std::sort(begin(reqs.total_requirements), end(reqs.total_requirements),
+                  [](const ItemQuantity& iq1, const ItemQuantity& iq2) { return iq1.quantity < iq2.quantity; });
+        std::reverse(begin(reqs.total_requirements), end(reqs.total_requirements));
+        for(const auto& r : reqs.total_requirements)
+            std::cout << "\t" << r << std::endl;
     }
     catch(const std::exception& ex)
     {
