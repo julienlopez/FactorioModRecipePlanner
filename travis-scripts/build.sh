@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CC=gcc-9 && CXX=g++-9
+CC=gcc-8 && CXX=g++-8
 
 mkdir build
 cd build
