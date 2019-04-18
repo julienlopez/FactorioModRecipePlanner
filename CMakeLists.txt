@@ -4,6 +4,7 @@ project(FactorioModRecipePlanner)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions("-DNOMINMAX")
+add_definitions("-std=c++17")
 
 if(ENABLE_COVERAGE STREQUAL "ON")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fprofile-arcs -ftest-coverage -O0")
