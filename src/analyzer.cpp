@@ -49,30 +49,11 @@ auto compareIqByItem(const Item& item)
     return [&item](const ItemQuantity& iq) { return iq.item == item; };
 }
 
-bool isNotCompatibleWithProductivityModules(const Item& item)
-{
-    const std::vector<Item> final_items{"inserter", "transport-belt",   "stone-wall",
-                                        "grenade",  "firearm-magazine", "piercing-rounds-magazine",
-                                        "pipe",     "electric-furnace", "productivity-module",
-                                        "rail"};
-    return std::find(begin(final_items), end(final_items), item) != end(final_items);
-}
-
-double computeRatio(const std::vector<ItemQuantity>& recipe_outputs, const ItemQuantity& production_wanted)
-{
-    const auto it = find_if(begin(recipe_outputs), end(recipe_outputs), compareIqByItem(production_wanted.item));
-    if(it == end(recipe_outputs)) throw std::runtime_error("bad outputs given to computeRatio");
-    if(isNotCompatibleWithProductivityModules(production_wanted.item))
-        return production_wanted.quantity / it->quantity;
-    else
-        return production_wanted.quantity / it->quantity / Analyzer::c_productivity_bonus;
-}
-
 bool isOnBus(const Item& item)
 {
-    const std::vector<Item> items_on_the_bus{"copper-plate", "iron-plate",  "iron-gear-wheel", "electronic-circuit",
-                                             "steel-plate",  "stone-brick", "plastic-bar",         "advanced-circuit",
-                                             "solid-fuel", "processing-unit", "lubricant", "battery"};
+    const std::vector<Item> items_on_the_bus{"copper-plate", "iron-plate",      "iron-gear-wheel", "electronic-circuit",
+                                             "steel-plate",  "stone-brick",     "plastic-bar",     "advanced-circuit",
+                                             "solid-fuel",   "processing-unit", "lubricant",       "battery"};
     return std::find(begin(items_on_the_bus), end(items_on_the_bus), item) != end(items_on_the_bus);
 }
 
@@ -107,10 +88,12 @@ ItemQuantity operator*(double ratio, ItemQuantity iq)
     return std::move(iq) * ratio;
 }
 
+const std::string Analyzer::c_default_productivity_module = "productivity-module-3";
+
 Analyzer::Analyzer(const std::vector<filesystem::path>& files)
     : m_recipes(loadRecipeFiles(files))
+    , m_modulable_items(loadModulableItems(files.front()))
 {
-    std::cout << m_recipes.size() << " recipes loaded" << std::endl;
 }
 
 std::vector<ItemQuantity> Analyzer::computeRequirements(const ItemQuantity& iq) const
@@ -168,4 +151,30 @@ auto Analyzer::loadRecipeFile(const filesystem::path& file) -> RecipeContainer_t
     const auto json = nlohmann::json::parse(content);
     std::cout << file << " : \n";
     return loadRecipes(json);
+}
+
+std::vector<Item> Analyzer::loadModulableItems(const filesystem::path& file)
+{
+    const auto json = nlohmann::json::parse(readFileAsString(file));
+    const auto list = json["items"][c_default_productivity_module]["limitation"];
+    std::vector<Item> res;
+    for(const auto& item : list)
+        res.push_back(item);
+    return res;
+}
+
+bool Analyzer::isCompatibleWithProductivityModules(const Item& item) const
+{
+    return std::find(begin(m_modulable_items), end(m_modulable_items), item) != end(m_modulable_items);
+}
+
+double Analyzer::computeRatio(const std::vector<ItemQuantity>& recipe_outputs,
+                              const ItemQuantity& production_wanted) const
+{
+    const auto it = find_if(begin(recipe_outputs), end(recipe_outputs), compareIqByItem(production_wanted.item));
+    if(it == end(recipe_outputs)) throw std::runtime_error("bad outputs given to computeRatio");
+    if(isCompatibleWithProductivityModules(production_wanted.item))
+        return production_wanted.quantity / it->quantity / Analyzer::c_productivity_bonus;
+    else
+        return production_wanted.quantity / it->quantity;
 }
