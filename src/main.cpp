@@ -1,5 +1,6 @@
 #include "analyzer.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 
