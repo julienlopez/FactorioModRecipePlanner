@@ -168,7 +168,7 @@ auto Analyzer::loadRecipeFiles(const std::vector<filesystem::path>& files) -> Re
         std::copy(std::make_move_iterator(begin(recipes)), std::make_move_iterator(end(recipes)),
                   std::back_inserter(res));
     }
-    res.push_back({"space-science-pack", 5., {{"rocket-part", 100}}, {{"space-science-pack", 1000}}});
+    res.push_back({"space-science-pack", 5., {{"rocket-part", 100}, {"satellite", 1}}, {{"space-science-pack", 1000}}});
     return res;
 }
 
